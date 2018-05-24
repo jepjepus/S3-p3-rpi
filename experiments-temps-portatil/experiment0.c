@@ -2,8 +2,14 @@
 #include<stdlib.h>
 #include<time.h>
 #include<unistd.h>
-/* experiment 0
+/* experiment 0, amb usleep()
+
+usleep() description:
+The usleep() function suspends execution of the calling thread for (at least) usec microseconds. The sleep may be lengthened slightly by any system activity or by the time spent processing the call or by the granularity of system timers.
+
+
 Exemples d'execució (HP Elitebook 2570p, cpu:i5-3340m @ 2.7 GHz
+
 $./a.out 
 N:100 delay:  1 ms -> | min:  10.00 us | avg:  32.95 us | max:  65.00 us|
 N:100 delay: 10 ms -> | min:  13.00 us | avg:  22.14 us | max:  39.00 us|

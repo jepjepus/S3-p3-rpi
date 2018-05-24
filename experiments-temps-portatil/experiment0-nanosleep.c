@@ -2,17 +2,28 @@
 #include<stdlib.h>
 #include<time.h>
 #include<unistd.h>
-/* experiment 0
-Exemples d'execució:
-$./a.out 
-N:100 delay:  1 ms -> | min:  10.00 us | avg:  32.95 us | max:  65.00 us|
-N:100 delay: 10 ms -> | min:  13.00 us | avg:  22.14 us | max:  39.00 us|
-N:100 delay:100 ms -> | min:  13.00 us | avg:  21.64 us | max:  40.00 us|
+/* experiment 0, amb nanosleep
+
+Description
+
+nanosleep() suspends the execution of the calling thread until either at least the time specified in *req has elapsed, or the delivery of a signal that triggers the invocation of a handler in the calling thread or that terminates the process. 
+
+Exemples d'execució (HP Elitebook 2570p, cpu:i5-3340m @ 2.7 GHz
+
+$ ./a.out 
+N:100 delay:  1 ms -> | min:  11.00 us | avg:  17.47 us | max:  32.00 us|
+N:100 delay: 10 ms -> | min:  11.00 us | avg:  17.00 us | max:  42.00 us|
+N:100 delay:100 ms -> | min:   9.00 us | avg:  21.65 us | max:  43.00 us|
+
 $ nice -20 ./a.out 
-N:100 delay:  1 ms -> | min:   9.00 us | avg:  17.44 us | max:  21.00 us|
-N:100 delay: 10 ms -> | min:  13.00 us | avg:  18.04 us | max:  41.00 us|
-N:100 delay:100 ms -> | min:  13.00 us | avg:  20.86 us | max:  37.00 us|
+N:100 delay:  1 ms -> | min:   8.00 us | avg:  17.58 us | max:  36.00 us|
+N:100 delay: 10 ms -> | min:  13.00 us | avg:  23.30 us | max:  52.00 us|
+N:100 delay:100 ms -> | min:   7.00 us | avg:  22.86 us | max:  55.00 us|
+
 */
+
+
+
 
 #define N 100
 
@@ -22,10 +33,13 @@ void calculs(int n, useconds_t dela) // fer N vegades bucle amb retard de dela (
 {
   int i;
   clock_t t0, t1;
+  struct timespec req, rem;
+  req.tv_sec = 0;
+  req.tv_nsec = dela*1000; // convert us to ns
   for (i=0;i<n;i++)
     {
       t0 = clock(); // obtenim temps inicial
-      usleep(dela); // retard de dela microsegons
+      nanosleep(&req, &rem); // retard de dela microsegons
       t1 = clock(); // obtenim temps final després del retard
       dtt[i] = ((float)(t1 - t0)) / (CLOCKS_PER_SEC* 1.0E-6); // obtenim us de 'retard' en tornar del retard
     }
