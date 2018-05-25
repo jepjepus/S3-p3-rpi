@@ -20,6 +20,7 @@ Exemples d'execució (HP Elitebook 2570p, cpu:i5-3340m @ 2.7 GHz
 (provat usant tty0tty = emulació de connexió entre 2 ports sèrie en la mateixa màquina)
 https://sourceforge.net/projects/tty0tty/
 
+(emulació, sense arduino, sense programar port a 115200)
 $ ./exp1.out 
 L:   1 |dela:         5 ms |dtt:     65.00 us|
 L:  10 |dela:         5 ms |dtt:     40.00 us|
@@ -27,15 +28,38 @@ L:  20 |dela:         5 ms |dtt:     34.00 us|
 L: 100 |dela:        25 ms |dtt:      6.00 us|
 L: 200 |dela:        50 ms |dtt:      5.00 us|
 L:1000 |dela:       250 ms |dtt:     39.00 us|
+
+(amb arduino port a 115200, enviant 'A' contínuament)
+$ ./exp1-n.out 
+L:   1 |dela:         5 ms |dtt:     63.00 us|
+L:  10 |dela:         5 ms |dtt:     41.00 us|
+L:  20 |dela:         5 ms |dtt:     26.00 us|
+L: 100 |dela:        25 ms |dtt:      4.00 us|
+L: 200 |dela:        50 ms |dtt:      5.00 us|
+L:1000 |dela:       250 ms |dtt:     46.00 us|
+
+(amb arduino port a 115200, enviant binari 8 bits - port obert per binari!)
+$ ./exp1-n.out 
+L:   1 |dela:         5 ms |dtt:     71.00 us|
+L:  10 |dela:         5 ms |dtt:     49.00 us|
+L:  20 |dela:         5 ms |dtt:     33.00 us|
+L: 100 |dela:        25 ms |dtt:     12.00 us|
+L: 200 |dela:        50 ms |dtt:      5.00 us|
+L:1000 |dela:       250 ms |dtt:     31.00 us|
+
+
+
 */
 
 char buffer[2000];
+
 
 // open_port(): Open a serial port.
 // Returns the file descriptor on success or -1 on error.
 int open_port(void)
 {
-  char * port = "/dev/pts/1";
+  //char * port = "/dev/pts/1"; // for emulated serial port
+  char * port = "/dev/ttyUSB3"; // for real serial port to Arduino
   int fd; /* File descriptor for the port */
 
   fd = open(port, O_RDWR | O_NOCTTY | O_NDELAY);
@@ -45,7 +69,31 @@ int open_port(void)
     perror("open_port: Unable to open serial port - ");
   }
   else
+    {
     fcntl(fd, F_SETFL, 0); // normal (blocking) behavior
+    struct termios options;
+    tcgetattr(fd, &options); //this gets the current options set for the port
+    // setting the options
+    cfsetispeed(&options, B115200); //input baudrate
+    cfsetospeed(&options, B115200); // output baudrate
+    options.c_cflag |= (CLOCAL | CREAD); // ?? enable receivcer and set local mode
+    //options.c_cflag &= ~CSIZE; /* mask the character size bits */
+    options.c_cflag |= CS8;    /* select 8 data bits */
+    options.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG); // choosing raw input
+    options.c_iflag &= ~INPCK; // disable parity check
+    options.c_iflag &= ~(IXON | IXOFF | IXANY); // disable software flow control
+    options.c_oflag |= OPOST; // ?? choosing processed output
+    options.c_cc[VMIN] = 0; // Wait until x bytes read (blocks!)
+    options.c_cc[VTIME] = 0; // Wait x * 0.1s for input (unblocks!)
+
+    // settings for no parity bit
+    options.c_cflag &= ~PARENB;
+    options.c_cflag &= ~CSTOPB;
+    options.c_cflag &= ~CSIZE;
+    options.c_cflag |= CS8;
+
+    tcsetattr(fd, TCSANOW, &options); //set the new options ... TCSANOW specifies all option changes to occur immediately
+    }
   return (fd);
 }
 
