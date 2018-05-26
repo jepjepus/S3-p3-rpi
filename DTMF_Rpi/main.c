@@ -20,6 +20,62 @@ Rebrà de l'Arduino, per port sèrie (115200-N-8-1), les dades de la finestra de
 Per als càlculs de temps d'utilitza nanosleep():
 nanosleep() suspends the execution of the calling thread until either at least the time specified in *req has elapsed, or the delivery of a signal that triggers the invocation of a handler in the calling thread or that terminates the process.
 
+Temps obtinguts (en buit, sense injectar senyal però amb Arduino, és clar):
+
+ |Tser:28229.00 us|Tgoe:   9.00 us|Total:28238.00 us|
+ |Tser:24205.00 us|Tgoe:   8.00 us|Total:24213.00 us|
+ |Tser:24219.00 us|Tgoe:   8.00 us|Total:24227.00 us|
+ |Tser:24253.00 us|Tgoe:   8.00 us|Total:24261.00 us|
+ |Tser:24228.00 us|Tgoe:   8.00 us|Total:24236.00 us|
+ |Tser:24224.00 us|Tgoe:   9.00 us|Total:24233.00 us|
+ |Tser:24239.00 us|Tgoe:   9.00 us|Total:24248.00 us|
+ |Tser:24219.00 us|Tgoe:   9.00 us|Total:24228.00 us|
+ |Tser:28260.00 us|Tgoe:   8.00 us|Total:28268.00 us|
+ |Tser:24170.00 us|Tgoe:   8.00 us|Total:24178.00 us|
+ |Tser:24236.00 us|Tgoe:   9.00 us|Total:24245.00 us|
+ |Tser:24221.00 us|Tgoe:   9.00 us|Total:24230.00 us|
+ |Tser:24217.00 us|Tgoe:   8.00 us|Total:24225.00 us|
+ |Tser:24184.00 us|Tgoe:   9.00 us|Total:24193.00 us|
+ |Tser:24197.00 us|Tgoe:   9.00 us|Total:24206.00 us|
+ |Tser:24248.00 us|Tgoe:   9.00 us|Total:24257.00 us|
+ |Tser:28264.00 us|Tgoe:   9.00 us|Total:28273.00 us|
+
+Temps obtinguts descodificant (test8.wav):
+
+0
+ |Tser:24244.00 us|Tgoe:  18.00 us|Total:24262.00 us|
+ |Tser:28241.00 us|Tgoe:   9.00 us|Total:28250.00 us|
+ |Tser:24215.00 us|Tgoe:   9.00 us|Total:24224.00 us|
+ |Tser:24205.00 us|Tgoe:   9.00 us|Total:24214.00 us|
+ |Tser:24204.00 us|Tgoe:   8.00 us|Total:24212.00 us|
+ |Tser:24201.00 us|Tgoe:   9.00 us|Total:24210.00 us|
+ |Tser:24210.00 us|Tgoe:   9.00 us|Total:24219.00 us|
+ |Tser:24230.00 us|Tgoe:   9.00 us|Total:24239.00 us|
+A
+ |Tser:24194.00 us|Tgoe:  29.00 us|Total:24223.00 us|
+ |Tser:28263.00 us|Tgoe:   9.00 us|Total:28272.00 us|
+ |Tser:24192.00 us|Tgoe:   9.00 us|Total:24201.00 us|
+ |Tser:24234.00 us|Tgoe:   9.00 us|Total:24243.00 us|
+ |Tser:24211.00 us|Tgoe:   9.00 us|Total:24220.00 us|
+ |Tser:24178.00 us|Tgoe:   9.00 us|Total:24187.00 us|
+ |Tser:24210.00 us|Tgoe:  15.00 us|Total:24225.00 us|
+ |Tser:24240.00 us|Tgoe:   9.00 us|Total:24249.00 us|
+ |Tser:24194.00 us|Tgoe:   8.00 us|Total:24202.00 us|
+B
+ |Tser:28271.00 us|Tgoe:  29.00 us|Total:28300.00 us|
+ |Tser:24220.00 us|Tgoe:   8.00 us|Total:24228.00 us|
+ |Tser:24186.00 us|Tgoe:  10.00 us|Total:24196.00 us|
+ |Tser:24242.00 us|Tgoe:   8.00 us|Total:24250.00 us|
+ |Tser:24159.00 us|Tgoe:  10.00 us|Total:24169.00 us|
+ |Tser:24280.00 us|Tgoe:   8.00 us|Total:24288.00 us|
+ |Tser:24264.00 us|Tgoe:   9.00 us|Total:24273.00 us|
+ |Tser:24138.00 us|Tgoe:   8.00 us|Total:24146.00 us|
+C
+ |Tser:28269.00 us|Tgoe:  16.00 us|Total:28285.00 us|
+ |Tser:24220.00 us|Tgoe:   9.00 us|Total:24229.00 us|
+ |Tser:24191.00 us|Tgoe:   9.00 us|Total:24200.00 us|
+ |Tser:24233.00 us|Tgoe:   8.00 us|Total:24241.00 us|
+
 */
 
 #define N 196 // longitud de finestra
@@ -214,9 +270,11 @@ void goertzel(unsigned char * buf, int n)
   //printf("%c\n", rebut);
   capa_3(rebut); // la capa3 es maquina d'estats que determina el caracter rebut, L'envia a pantalla. 
 }
- 
+
 void main(void)
 {
+  clock_t t0, t1, t2;
+  float T1, T2;
   int port_serie;
   unsigned char buffer[N+1]; // buffer per recollir les dades del port sèrie
   init_A_FS(); // Càlculs previs: A per a Goertzel
@@ -226,13 +284,14 @@ void main(void)
   printf("Port sèrie obert.\n");
   while(-1)
     {
-      //printf("I");
+      t0 = clock(); // obtenim temps inicial 
       llegeix_finestra(port_serie, buffer, N); //  lectura N valors de port sèrie
-      //printf("L\n");
+      t1 = clock(); // obtenim temps final després del retard
       goertzel(buffer,N);
-
-      /* calculs(buffer, N); */
-      /* resultats(L[i],dtt); // L[i] vegades; presenta min, max i avg */
+      t2 = clock(); // obtenim temps final després del retard
+      T1 = ((float)(t1 - t0)) / (CLOCKS_PER_SEC * 1.0E-6); // obtenim us de la lectura
+      T2 = ((float)(t2 - t1)) / (CLOCKS_PER_SEC * 1.0E-6); // obtenim us de la lectura
+      printf(" |Tser:%7.2f us|Tgoe:%7.2f us|Total:%7.2f us|\n", T1, T2, T1+T2); 
     }
   close_port(port_serie);
 }
