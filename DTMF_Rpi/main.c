@@ -27,13 +27,13 @@ nanosleep() suspends the execution of the calling thread until either at least t
 #define NUMFREQ 8 // seran les freqüències de 0 a 7
 
 const float FS[NUMFREQ]={697,770,852,941,1209,1336,1477,1633};
-const long LLINDAR[NUMFREQ]={65112,72015,68495,61135,61812,48062,69813,48067}; //maxim dels falsos mes un 10%
+const long LLINDAR[NUMFREQ]={400000L,400000L,400000L,400000L,400000L,400000L,200000L,110000L}; //maxim dels falsos mes un 10%
 long XK2[NUMFREQ]; //el fem long per comparar amb LLINDAR
 
 const char dial_pad[4][4]={{'1','2','3','A'},{'4','5','6','B'},{'7','8','9','C'},{'*','0','#','D'}};
 
 float K[NUMFREQ]; // valors K per a cada freqüència. float que anem 'sobrats'
-float A[NUMFREQ]; // valors A per a cada freqüència. Pot ser float 
+float A[NUMFREQ]; // valors A per a cada freqüència. És float, té decimals 
 
 // init_A_FS(): calcula valors de K i A per a Goertzel
 void init_A_FS(void)
@@ -97,7 +97,7 @@ int close_port(int fd)
 }
 
 // serial_read(): llegim n caràcters del port i es desen a buf.
-void serial_read(int port, char * buf, int n)
+void serial_read(int port, unsigned char * buf, int n)
 {
  read(port, buf, n);
 }
@@ -133,12 +133,14 @@ void serial_read(int port, char * buf, int n)
 /*   printf("L:%4d | min:%7.2f us | avg:%7.2f us | max:%7.2f us|\n", l, min, avg, max);  */
 /* } */
 
-void llegeix_finestra(int port, char * buf, int n)
+void llegeix_finestra(int port, unsigned char * buf, int n)
 {
   int bytes_avail;
   do ioctl(port, FIONREAD, &bytes_avail);
   while (bytes_avail<n); // hi ha n bytes_avail
   serial_read(port, buf, n);
+  /* for(int i=0;i<n;i++) printf("%x",buf[i]); */
+  /* printf("\n"); */
 }
 
 const char calc_boto(void){ //CAPA 2: detecció de les 2 freqüències + botó corresponent
@@ -166,10 +168,11 @@ const char calc_boto(void){ //CAPA 2: detecció de les 2 freqüències + botó c
 
 void capa_3(char capa_2){ //CAPA 3: màquina d'estats. Filtre casos d'error, espais, durada de pulsació de boto...
   static int estat=0;
+  //printf("[%d]",estat);
   switch (estat){
   case 0:
     if (!((capa_2=='S') || (capa_2=='E'))) {
-      printf("%c", capa_2); estat=1;
+      printf("%c\n", capa_2); estat=1;
       return;
     }
     //else{printf("-");}
@@ -186,10 +189,10 @@ void capa_3(char capa_2){ //CAPA 3: màquina d'estats. Filtre casos d'error, esp
   }
 }
  
-void goertzel(char * buf, int n)
+void goertzel(unsigned char * buf, int n)
 {
   char rebut; // dígit rebut
-  float Sn_1[NUMFREQ]={0,0,0,0,0,0,0,0}, Sn_2[NUMFREQ]={0,0,0,0,0,0,0,0}, Sn[NUMFREQ];
+  float Sn[NUMFREQ], Sn_1[NUMFREQ]={0,0,0,0,0,0,0,0}, Sn_2[NUMFREQ]={0,0,0,0,0,0,0,0};
   int i,j;
   for(j=0;j<n;j++) // tractem finestra. per a cada mostra j...
     {
@@ -203,24 +206,30 @@ void goertzel(char * buf, int n)
   for (i=0;i<NUMFREQ;i++) // calculem XK2 per a cada frequencia
     {
       XK2[i] = Sn_1[i]*Sn_1[i] + Sn_2[i]*Sn_2[i] - A[i]*Sn_1[i]*Sn_2[i];
+      // printf("%8ld ",XK2[i]);
     }
+  //printf("XK2\n");
   // valors calculats. Ara capa 2
   rebut=calc_boto(); // determinem el que es rep: caracter, espai(S) o error(E) 
+  //printf("%c\n", rebut);
   capa_3(rebut); // la capa3 es maquina d'estats que determina el caracter rebut, L'envia a pantalla. 
 }
  
 void main(void)
 {
   int port_serie;
-  char buffer[N+1]; // buffer per recollir les dades del port sèrie
-
+  unsigned char buffer[N+1]; // buffer per recollir les dades del port sèrie
   init_A_FS(); // Càlculs previs: A per a Goertzel
+  //for(int i=0;i<NUMFREQ;i++) printf("%10f %10f\n",K[i], A[i]);
+  //exit(0);
   port_serie=open_port();
   printf("Port sèrie obert.\n");
   while(-1)
     {
-     llegeix_finestra(port_serie, buffer, N); //  lectura N valors de port sèrie
-     goertzel(buffer,N);
+      //printf("I");
+      llegeix_finestra(port_serie, buffer, N); //  lectura N valors de port sèrie
+      //printf("L\n");
+      goertzel(buffer,N);
 
       /* calculs(buffer, N); */
       /* resultats(L[i],dtt); // L[i] vegades; presenta min, max i avg */
