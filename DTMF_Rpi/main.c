@@ -234,8 +234,8 @@ void capa_3(char capa_2){ //CAPA 3: màquina d'estats. Filtre casos d'error, esp
   switch (estat){
   case 0:
     if (!((capa_2=='S') || (capa_2=='E'))) {
-      printf("%c", capa_2); estat=1; 
-      fflush(stdout); // cal cridar fflush() per forçar el buidatge de buffer de printf si no cal acabar printf amb \n
+      printf("%c", capa_2); estat=1; // cal cridar fflush() per forçar el buidatge de buffer de printf si no cal acabar printf amb \n
+      //fflush(stdout); //alternativa a fflush(stdout): setbuf(stdout, NULL) a l'inici del programa
       return;
     }
     //else{printf("-");}
@@ -285,6 +285,7 @@ int main(int argc, char * argv[]) // poden entrar -debug per mostrar temps
   float T1, T2;
   int port_serie;
   unsigned char buffer[N+1]; // buffer per recollir les dades del port sèrie
+  setbuf(stdout, NULL); //alternativa a fer fflush(stdout) a cada printf() sense \n per mostrar-lo immediatament
   init_A_FS(); // Càlculs previs: A per a Goertzel
   printf("UPC-EPSEM-Sistemes Encastatas -  Pràctica 3 - PC i Raspberry Pi\n");
   printf("Descodificació DTMF.\n");
@@ -302,7 +303,7 @@ int main(int argc, char * argv[]) // poden entrar -debug per mostrar temps
       t2 = clock(); // obtenim temps final després del retard
       T1 = ((float)(t1 - t0)) / (CLOCKS_PER_SEC * 1.0E-6); // obtenim us de la lectura
       T2 = ((float)(t2 - t1)) / (CLOCKS_PER_SEC * 1.0E-6); // obtenim us de la lectura
-      if (debug) printf(" |Tser:%7.2f us|Tgoe:%7.2f us|Total:%7.2f us|\n", T1, T2, T1+T2); 
+      if (debug) printf(" |Tser:%7.2f us|Tgoe:%7.2f us|Total:%7.2f us|\n", T1, T2, T1+T2);
     }
    close_port(port_serie);
 
