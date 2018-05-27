@@ -44,8 +44,6 @@ static int uart_putchar(char c, FILE *stream){
   return 0;
 }
 
-int pinLED = 13;
-
 void setup(){
   setup_ADC(1,5,16);//(adc_input,v_ref,adc_pre)
   //adc_input 0-5 (default=5),8 Tª, 14 1.1V, 15 GND 
@@ -57,25 +55,17 @@ void setup(){
   setup_pwm_tmr2(11);//(pwm_out) 3,default=11
   DDRD |=(1<<4);//pin 4 Arduino as an output. It shows sampling period (period) and ISR execution time (pulse wide)
   DDRD |=(1<<5);//pin  Arduino as an output. It shows sampling period (period) and ISR execution time (pulse wide)
-  DDRB |= _BV(DDB5); /* set pin 5 of PORTB for output*/
+  DDRB |= _BV(DDB5); /* set pin 5 of PORTB (L LED) for output*/
   serial_init();  
   stdout = &mystdout;
   sei();
 }
 
-// change_led(): canvia l'estat del LED
-void change_led(void)
+// toggle_led(): canvia l'estat del LED
+void toggle_led(void)
 {
-  static int estat=1;
-  switch(estat)
-    {
-    case 1: PORTB |= _BV(PORTB5); break;
-      //delay(500);
-    case 0: PORTB &= ~_BV(PORTB5); break;
-    }
-  if (estat==1) estat=0;
-  else estat=1;
-  }
+  PORTB ^= _BV(PORTB5); // toggle pin 5 of PORTB (using xor) 
+}
 
 int main(void){
   setup();
@@ -84,7 +74,7 @@ int main(void){
     // ---------CALC----------
     if (flag==1){
       PORTD |= (1<<PD5);
-      change_led();
+      toggle_led();
       flag=0;
       PORTD &= ~(1<<PD5);
     }
