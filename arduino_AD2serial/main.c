@@ -57,29 +57,34 @@ void setup(){
   setup_pwm_tmr2(11);//(pwm_out) 3,default=11
   DDRD |=(1<<4);//pin 4 Arduino as an output. It shows sampling period (period) and ISR execution time (pulse wide)
   DDRD |=(1<<5);//pin  Arduino as an output. It shows sampling period (period) and ISR execution time (pulse wide)
-  //pinMode(pinLED, OUTPUT);
+  DDRB |= _BV(DDB5); /* set pin 5 of PORTB for output*/
   serial_init();  
   stdout = &mystdout;
   sei();
 }
 
 // change_led(): canvia l'estat del LED
-// estat: HIGH o LOW
-void change_led(int estat)
+void change_led(void)
 {
-  // digitalWrite(pinLED,estat);
-}
+  static int estat=1;
+  switch(estat)
+    {
+    case 1: PORTB |= _BV(PORTB5); break;
+      //delay(500);
+    case 0: PORTB &= ~_BV(PORTB5); break;
+    }
+  if (estat==1) estat=0;
+  else estat=1;
+  }
 
 int main(void){
-  int estatLED=1;
   setup();
   //printf("main");
   while(1){
     // ---------CALC----------
     if (flag==1){
       PORTD |= (1<<PD5);
-      change_led(estatLED);
-      //if (estatLED==LOW) estatLED=HIGH; else estatLED=LOW;
+      change_led();
       flag=0;
       PORTD &= ~(1<<PD5);
     }

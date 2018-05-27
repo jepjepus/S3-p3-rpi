@@ -2,6 +2,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <stdio.h>   /* Standard input/output definitions */
+#include <stdio_ext.h> /* to check buffer size? */
 #include <string.h>  /* String function definitions */
 #include <unistd.h>  /* UNIX standard function definitions */
 #include <fcntl.h>   /* File control definitions */
@@ -115,6 +116,7 @@ int open_port(void)
   {
    /* Could not open the port. */
     perror("open_port: Unable to open serial port - ");
+    exit(1); //afegida perquè si no obre, acabi programa
   }
   else
     {
@@ -126,10 +128,12 @@ int open_port(void)
 
     cfsetispeed(&options, B115200); //input baudrate
     cfsetospeed(&options, B115200); // output baudrate
-    options.c_cflag |= (CLOCAL | CREAD); // ?? enable receicer and set local mode
+    options.c_cflag |= (CLOCAL | CREAD); // ?? enable receiver and set local mode
+    //options.c_cflag &= ~CRTSCTS; // disable RTS/CTS
     //options.c_cflag &= ~CSIZE; /* mask the character size bits */
     options.c_cflag |= CS8;    /* select 8 data bits */
     options.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG); // choosing raw input
+    // options.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG | TOSTOP); // choosing raw input, no signal does not affect to flush time
     options.c_iflag &= ~INPCK; // disable parity check
     options.c_iflag &= ~(IXON | IXOFF | IXANY); // disable software flow control
     options.c_oflag |= OPOST; // ?? choosing processed output
@@ -195,6 +199,8 @@ void llegeix_finestra(int port, unsigned char * buf, int n)
   do ioctl(port, FIONREAD, &bytes_avail);
   while (bytes_avail<n); // hi ha n bytes_avail
   serial_read(port, buf, n);
+  //tcflush(port,TCIOFLUSH); //prova de reset de bufer
+  //tcdrain(port); //prova de reinici de bufer
   /* for(int i=0;i<n;i++) printf("%x",buf[i]); */
   /* printf("\n"); */
 }
@@ -228,7 +234,8 @@ void capa_3(char capa_2){ //CAPA 3: màquina d'estats. Filtre casos d'error, esp
   switch (estat){
   case 0:
     if (!((capa_2=='S') || (capa_2=='E'))) {
-      printf("%c\n", capa_2); estat=1;
+      printf("%c", capa_2); estat=1; 
+      fflush(stdout); // cal cridar fflush() per forçar el buidatge de buffer de printf si no cal acabar printf amb \n
       return;
     }
     //else{printf("-");}
@@ -271,15 +278,19 @@ void goertzel(unsigned char * buf, int n)
   capa_3(rebut); // la capa3 es maquina d'estats que determina el caracter rebut, L'envia a pantalla. 
 }
 
-void main(void)
+int main(int argc, char * argv[]) // poden entrar -debug per mostrar temps
 {
+  int debug=0;
   clock_t t0, t1, t2;
   float T1, T2;
   int port_serie;
   unsigned char buffer[N+1]; // buffer per recollir les dades del port sèrie
   init_A_FS(); // Càlculs previs: A per a Goertzel
-  //for(int i=0;i<NUMFREQ;i++) printf("%10f %10f\n",K[i], A[i]);
-  //exit(0);
+  printf("UPC-EPSEM-Sistemes Encastatas -  Pràctica 3 - PC i Raspberry Pi\n");
+  printf("Descodificació DTMF.\n");
+  if ((argc==2) && strcmp(argv[1],"-debug")==0) debug=-1; // han entrat -debug" a línia d'ordres
+  if (debug) printf("Mode debug activat\n");
+  else printf("Teniu l'opció -debug per mostrar els temps de finestra i de càlcul\n");
   port_serie=open_port();
   printf("Port sèrie obert.\n");
   while(-1)
@@ -291,7 +302,8 @@ void main(void)
       t2 = clock(); // obtenim temps final després del retard
       T1 = ((float)(t1 - t0)) / (CLOCKS_PER_SEC * 1.0E-6); // obtenim us de la lectura
       T2 = ((float)(t2 - t1)) / (CLOCKS_PER_SEC * 1.0E-6); // obtenim us de la lectura
-      printf(" |Tser:%7.2f us|Tgoe:%7.2f us|Total:%7.2f us|\n", T1, T2, T1+T2); 
+      if (debug) printf(" |Tser:%7.2f us|Tgoe:%7.2f us|Total:%7.2f us|\n", T1, T2, T1+T2); 
     }
-  close_port(port_serie);
+   close_port(port_serie);
+
 }
