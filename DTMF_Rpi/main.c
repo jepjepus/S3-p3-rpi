@@ -121,7 +121,7 @@ void init_A_FS(void)
 int open_port(void)
 {
   //char * port = "/dev/pts/1"; // for emulated serial port
-  char * port = "/dev/ttyUSB3"; // for real serial port to Arduino
+  char * port = "/dev/ttyUSB0"; // for real serial port to Arduino
   int fd; /* File descriptor for the port */
 
   fd = open(port, O_RDWR | O_NOCTTY | O_NDELAY);
@@ -177,19 +177,17 @@ void serial_read(int port, unsigned char * buf, int n)
 
 void llegeix_finestra(int port, unsigned char * buf, int n)
 {
-  clock_t t0, t1;
+  struct timespec t0, t1;
   float T1;
   int bytes_avail;
   do ioctl(port, FIONREAD, &bytes_avail);
   while (bytes_avail<n); // hi ha n bytes_avail
-  t0=clock();
+  clock_gettime(CLOCK_REALTIME, &t0);
   serial_read(port, buf, n);
-  t1=clock();
-  T1 = ((float)(t1 - t0)) / (CLOCKS_PER_SEC * 1.0E-6); // obtenim us de la lectura
-  if (debug) printf(" |Tserial_read:%7.2f us|\n", T1);
-  //tcflush(port,TCIOFLUSH); //prova de reset de bufer. Afegir-lo fa que t=28 ms
+  clock_gettime(CLOCK_REALTIME, &t1);
+  T1 = ((t1.tv_sec - t0.tv_sec) * 1E9) + (t1.tv_nsec - t0.tv_nsec);
+  if (debug) printf(" |Tserial_read:%7.2f us|\n", T1/1000);
   //tcflush(port,TCIFLUSH); //prova de reset de bufer. Afegir-lo fa que t=28 ms
-  //tcdrain(port); //prova de reinici de bufer
   /* for(int i=0;i<n;i++) printf("%x",buf[i]); */
   /* printf("\n"); */
 }
@@ -270,7 +268,7 @@ void goertzel(unsigned char * buf, int n)
 
 int main(int argc, char * argv[]) // poden entrar -debug per mostrar temps
 {
-  clock_t t0, t1, t2;
+  struct timespec t0, t1, t2;
   float T1, T2;
   int port_serie;
   unsigned char buffer[N+1]; // buffer per recollir les dades del port sèrie
@@ -285,14 +283,14 @@ int main(int argc, char * argv[]) // poden entrar -debug per mostrar temps
   printf("Port sèrie obert.\n");
   while(-1)
     {
-      t0 = clock(); // obtenim temps inicial 
+      clock_gettime(CLOCK_REALTIME, &t0);  
       llegeix_finestra(port_serie, buffer, N); //  lectura N valors de port sèrie
-      t1 = clock(); // obtenim temps final després del retard
+      clock_gettime(CLOCK_REALTIME, &t1);  
       goertzel(buffer,N);
-      t2 = clock(); // obtenim temps final després del retard
-      T1 = ((float)(t1 - t0)) / (CLOCKS_PER_SEC * 1.0E-6); // obtenim us de la lectura
-      T2 = ((float)(t2 - t1)) / (CLOCKS_PER_SEC * 1.0E-6); // obtenim us de la lectura
-      if (debug) printf(" |Tser:%7.2f us|Tgoe:%7.2f us|Total:%7.2f us|\n", T1, T2, T1+T2);
+      clock_gettime(CLOCK_REALTIME, &t2);  
+      T1 = ((t1.tv_sec - t0.tv_sec) * 1E9) + (t1.tv_nsec - t0.tv_nsec);
+      T2 = ((t2.tv_sec - t1.tv_sec) * 1E9) + (t2.tv_nsec - t1.tv_nsec);
+      if (debug) printf(" |Tser:%7.2f us|Tgoe:%7.2f us|Total:%7.2f us|\n", T1/1000, T2/1000, (T1+T2)/1000);
     }
    close_port(port_serie);
 
