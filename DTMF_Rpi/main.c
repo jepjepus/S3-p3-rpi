@@ -121,7 +121,7 @@ void init_A_FS(void)
 int open_port(void)
 {
   //char * port = "/dev/pts/1"; // for emulated serial port
-  char * port = "/dev/ttyUSB0"; // for real serial port to Arduino
+  char * port = "/dev/ttyUSB3"; // for real serial port to Arduino
   int fd; /* File descriptor for the port */
 
   fd = open(port, O_RDWR | O_NOCTTY | O_NDELAY);
