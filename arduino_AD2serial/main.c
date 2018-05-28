@@ -49,7 +49,7 @@ void setup(){
   //adc_input 0-5 (default=5),8 Tª, 14 1.1V, 15 GND 
   //v_ref 0 (AREF), 1(1.1V), default=5 (5V)
   //adc_pre 2,4,8,16(default),32,64,128
-  setup_tmr0(250,8);//(ocr0a, tmr0_pre)
+  setup_tmr0(247,8);//(ocr0a, tmr0_pre)
   //tmr0_pre 1,default=8,64,256,1024
   //TMR0=prescaler*(ocr0a+1)*T_clk
   setup_pwm_tmr2(11);//(pwm_out) 3,default=11
@@ -86,6 +86,7 @@ static uint8_t n=0;
 
 ISR(TIMER0_COMPA_vect){
   PORTD |= (1<<PD4);
+  //PORTD ^= _BV(PORTD4); // toggle pin 5 of PORTB (using xor) 
 
   uint8_t Xn=read8_ADC();
   start_ADC();
