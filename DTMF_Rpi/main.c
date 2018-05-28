@@ -21,61 +21,70 @@ Rebrà de l'Arduino, per port sèrie (115200-N-8-1), les dades de la finestra de
 Per als càlculs de temps d'utilitza nanosleep():
 nanosleep() suspends the execution of the calling thread until either at least the time specified in *req has elapsed, or the delivery of a signal that triggers the invocation of a handler in the calling thread or that terminates the process.
 
-Temps obtinguts (en buit, sense injectar senyal però amb Arduino, és clar):
+Temps obtinguts (en buit, sense injectar senyal però amb Arduino, és clar).
 
- |Tser:28229.00 us|Tgoe:   9.00 us|Total:28238.00 us|
- |Tser:24205.00 us|Tgoe:   8.00 us|Total:24213.00 us|
- |Tser:24219.00 us|Tgoe:   8.00 us|Total:24227.00 us|
- |Tser:24253.00 us|Tgoe:   8.00 us|Total:24261.00 us|
- |Tser:24228.00 us|Tgoe:   8.00 us|Total:24236.00 us|
- |Tser:24224.00 us|Tgoe:   9.00 us|Total:24233.00 us|
- |Tser:24239.00 us|Tgoe:   9.00 us|Total:24248.00 us|
- |Tser:24219.00 us|Tgoe:   9.00 us|Total:24228.00 us|
- |Tser:28260.00 us|Tgoe:   8.00 us|Total:28268.00 us|
- |Tser:24170.00 us|Tgoe:   8.00 us|Total:24178.00 us|
- |Tser:24236.00 us|Tgoe:   9.00 us|Total:24245.00 us|
- |Tser:24221.00 us|Tgoe:   9.00 us|Total:24230.00 us|
- |Tser:24217.00 us|Tgoe:   8.00 us|Total:24225.00 us|
- |Tser:24184.00 us|Tgoe:   9.00 us|Total:24193.00 us|
- |Tser:24197.00 us|Tgoe:   9.00 us|Total:24206.00 us|
- |Tser:24248.00 us|Tgoe:   9.00 us|Total:24257.00 us|
- |Tser:28264.00 us|Tgoe:   9.00 us|Total:28273.00 us|
+ |Tserial_read:   4.00 us
+ |Tser:23949.00 us|Tgoe:   8.00 us|Total:23957.00 us|
+ |Tserial_read:   2.00 us
+ |Tser:23925.00 us|Tgoe:   8.00 us|Total:23933.00 us|
+ |Tserial_read:   3.00 us
+ |Tser:23944.00 us|Tgoe:   8.00 us|Total:23952.00 us|
+ |Tserial_read:   4.00 us
+ |Tser:23953.00 us|Tgoe:   8.00 us|Total:23961.00 us|
+ |Tserial_read:   3.00 us
+ |Tser:23935.00 us|Tgoe:   8.00 us|Total:23943.00 us|
+ |Tserial_read:   1.00 us
+ |Tser:23935.00 us|Tgoe:   8.00 us|Total:23943.00 us|
+ |Tserial_read:   3.00 us
+ |Tser:23049.00 us|Tgoe:   9.00 us|Total:23058.00 us|
+ |Tserial_read:   3.00 us
+ |Tser:27903.00 us|Tgoe:   8.00 us|Total:27911.00 us|
+ |Tserial_read:   3.00 us
+ |Tser:23951.00 us|Tgoe:   8.00 us|Total:23959.00 us|
+ |Tserial_read:   3.00 us
+ |Tser:23918.00 us|Tgoe:  10.00 us|Total:23928.00 us|
+ |Tserial_read:   2.00 us
+ |Tser:23954.00 us|Tgoe:   8.00 us|Total:23962.00 us|
+ |Tserial_read:   3.00 us
+ |Tser:23946.00 us|Tgoe:   9.00 us|Total:23955.00 us|
 
 Temps obtinguts descodificant (test8.wav):
-
-0
- |Tser:24244.00 us|Tgoe:  18.00 us|Total:24262.00 us|
- |Tser:28241.00 us|Tgoe:   9.00 us|Total:28250.00 us|
- |Tser:24215.00 us|Tgoe:   9.00 us|Total:24224.00 us|
- |Tser:24205.00 us|Tgoe:   9.00 us|Total:24214.00 us|
- |Tser:24204.00 us|Tgoe:   8.00 us|Total:24212.00 us|
- |Tser:24201.00 us|Tgoe:   9.00 us|Total:24210.00 us|
- |Tser:24210.00 us|Tgoe:   9.00 us|Total:24219.00 us|
- |Tser:24230.00 us|Tgoe:   9.00 us|Total:24239.00 us|
-A
- |Tser:24194.00 us|Tgoe:  29.00 us|Total:24223.00 us|
- |Tser:28263.00 us|Tgoe:   9.00 us|Total:28272.00 us|
- |Tser:24192.00 us|Tgoe:   9.00 us|Total:24201.00 us|
- |Tser:24234.00 us|Tgoe:   9.00 us|Total:24243.00 us|
- |Tser:24211.00 us|Tgoe:   9.00 us|Total:24220.00 us|
- |Tser:24178.00 us|Tgoe:   9.00 us|Total:24187.00 us|
- |Tser:24210.00 us|Tgoe:  15.00 us|Total:24225.00 us|
- |Tser:24240.00 us|Tgoe:   9.00 us|Total:24249.00 us|
- |Tser:24194.00 us|Tgoe:   8.00 us|Total:24202.00 us|
-B
- |Tser:28271.00 us|Tgoe:  29.00 us|Total:28300.00 us|
- |Tser:24220.00 us|Tgoe:   8.00 us|Total:24228.00 us|
- |Tser:24186.00 us|Tgoe:  10.00 us|Total:24196.00 us|
- |Tser:24242.00 us|Tgoe:   8.00 us|Total:24250.00 us|
- |Tser:24159.00 us|Tgoe:  10.00 us|Total:24169.00 us|
- |Tser:24280.00 us|Tgoe:   8.00 us|Total:24288.00 us|
- |Tser:24264.00 us|Tgoe:   9.00 us|Total:24273.00 us|
- |Tser:24138.00 us|Tgoe:   8.00 us|Total:24146.00 us|
-C
- |Tser:28269.00 us|Tgoe:  16.00 us|Total:28285.00 us|
- |Tser:24220.00 us|Tgoe:   9.00 us|Total:24229.00 us|
- |Tser:24191.00 us|Tgoe:   9.00 us|Total:24200.00 us|
- |Tser:24233.00 us|Tgoe:   8.00 us|Total:24241.00 us|
+ |Tserial_read:   3.00 us|
+B |Tser:23867.00 us|Tgoe:   9.00 us|Total:23876.00 us|
+ |Tserial_read:   3.00 us|
+ |Tser:27878.00 us|Tgoe:   9.00 us|Total:27887.00 us|
+ |Tserial_read:   4.00 us|
+ |Tser:23847.00 us|Tgoe:  11.00 us|Total:23858.00 us|
+ |Tserial_read:   3.00 us|
+ |Tser:23879.00 us|Tgoe:   9.00 us|Total:23888.00 us|
+ |Tserial_read:   4.00 us|
+ |Tser:23836.00 us|Tgoe:  11.00 us|Total:23847.00 us|
+ |Tserial_read:   4.00 us|
+ |Tser:23862.00 us|Tgoe:  11.00 us|Total:23873.00 us|
+ |Tserial_read:   4.00 us|
+ |Tser:23905.00 us|Tgoe:   8.00 us|Total:23913.00 us|
+ |Tserial_read:   3.00 us|
+ |Tser:23893.00 us|Tgoe:   9.00 us|Total:23902.00 us|
+ |Tserial_read:   3.00 us|
+ |Tser:23877.00 us|Tgoe:   8.00 us|Total:23885.00 us|
+ |Tserial_read:   3.00 us|
+ |Tser:27807.00 us|Tgoe:   9.00 us|Total:27816.00 us|
+ |Tserial_read:   4.00 us|
+C |Tser:23906.00 us|Tgoe:  10.00 us|Total:23916.00 us|
+ |Tserial_read:   3.00 us|
+ |Tser:23880.00 us|Tgoe:   8.00 us|Total:23888.00 us|
+ |Tserial_read:   2.00 us|
+ |Tser:23889.00 us|Tgoe:   9.00 us|Total:23898.00 us|
+ |Tserial_read:   3.00 us|
+ |Tser:23786.00 us|Tgoe:  10.00 us|Total:23796.00 us|
+ |Tserial_read:   3.00 us|
+ |Tser:23925.00 us|Tgoe:   9.00 us|Total:23934.00 us|
+ |Tserial_read:   3.00 us|
+ |Tser:23927.00 us|Tgoe:   8.00 us|Total:23935.00 us|
+ |Tserial_read:   3.00 us|
+ |Tser:23855.00 us|Tgoe:   9.00 us|Total:23864.00 us|
+ |Tserial_read:   3.00 us|
+D |Tser:27831.00 us|Tgoe:  10.00 us|Total:27841.00 us|
 
 */
 
@@ -84,13 +93,17 @@ C
 #define NUMFREQ 8 // seran les freqüències de 0 a 7
 
 const float FS[NUMFREQ]={697,770,852,941,1209,1336,1477,1633};
-const long LLINDAR[NUMFREQ]={400000L,400000L,400000L,400000L,400000L,400000L,200000L,110000L}; //maxim dels falsos mes un 10%
+const long LLINDAR[NUMFREQ]={400000L,400000L,400000L,400000L,400000L,400000L,200000L,110000L};
 long XK2[NUMFREQ]; //el fem long per comparar amb LLINDAR
 
 const char dial_pad[4][4]={{'1','2','3','A'},{'4','5','6','B'},{'7','8','9','C'},{'*','0','#','D'}};
 
 float K[NUMFREQ]; // valors K per a cada freqüència. float que anem 'sobrats'
 float A[NUMFREQ]; // valors A per a cada freqüència. És float, té decimals 
+
+int debug=0; // debug=0 no debug; debug=-1 debug
+
+
 
 // init_A_FS(): calcula valors de K i A per a Goertzel
 void init_A_FS(void)
@@ -162,44 +175,20 @@ void serial_read(int port, unsigned char * buf, int n)
  read(port, buf, n);
 }
 
-// calculs(): donats un port, una l,
-// espera a tenir l caràcters al port i llegeix l caràcter/s.
-// retorna dtt.
-/* void calculs(int port, int l) */
-/* { */
-/*   int i, bytes_avail; */
-/*   clock_t t0, t1; */
-/*   for(i=0;i<N;i++) */
-/*     { */
-/*      t0 = clock(); // obtenim temps inicial */
-/*      serial_read(port, l); // lectura (descartada) de l elements */
-/*      t1 = clock(); // obtenim temps final després del retard */
-/*      dtt[i] = ((float)(t1 - t0)) / (CLOCKS_PER_SEC * 1.0E-6); // obtenim us de 'retard' */
-/*     } */
-/* } */
-
-/* void resultats(int l, float t[N]) */
-/* { */
-/*   int i; */
-/*   float min, max, avg; */
-/*   min=t[0]; max=t[0]; avg=t[0]; */
-/*   for (i=1;i<N;i++) */
-/*     { */
-/*       if (t[i] < min) min=t[i]; */
-/*       if (t[i] > max) max=t[i]; */
-/*       avg += t[i]; */
-/*     } */
-/*   avg /= N; */
-/*   printf("L:%4d | min:%7.2f us | avg:%7.2f us | max:%7.2f us|\n", l, min, avg, max);  */
-/* } */
-
 void llegeix_finestra(int port, unsigned char * buf, int n)
 {
+  clock_t t0, t1;
+  float T1;
   int bytes_avail;
   do ioctl(port, FIONREAD, &bytes_avail);
   while (bytes_avail<n); // hi ha n bytes_avail
+  t0=clock();
   serial_read(port, buf, n);
-  //tcflush(port,TCIOFLUSH); //prova de reset de bufer
+  t1=clock();
+  T1 = ((float)(t1 - t0)) / (CLOCKS_PER_SEC * 1.0E-6); // obtenim us de la lectura
+  if (debug) printf(" |Tserial_read:%7.2f us|\n", T1);
+  //tcflush(port,TCIOFLUSH); //prova de reset de bufer. Afegir-lo fa que t=28 ms
+  //tcflush(port,TCIFLUSH); //prova de reset de bufer. Afegir-lo fa que t=28 ms
   //tcdrain(port); //prova de reinici de bufer
   /* for(int i=0;i<n;i++) printf("%x",buf[i]); */
   /* printf("\n"); */
@@ -278,16 +267,16 @@ void goertzel(unsigned char * buf, int n)
   capa_3(rebut); // la capa3 es maquina d'estats que determina el caracter rebut, L'envia a pantalla. 
 }
 
+
 int main(int argc, char * argv[]) // poden entrar -debug per mostrar temps
 {
-  int debug=0;
   clock_t t0, t1, t2;
   float T1, T2;
   int port_serie;
   unsigned char buffer[N+1]; // buffer per recollir les dades del port sèrie
   setbuf(stdout, NULL); //alternativa a fer fflush(stdout) a cada printf() sense \n per mostrar-lo immediatament
   init_A_FS(); // Càlculs previs: A per a Goertzel
-  printf("UPC-EPSEM-Sistemes Encastatas -  Pràctica 3 - PC i Raspberry Pi\n");
+  printf("UPC-EPSEM-Sistemes Encastats -  Pràctica 3 - PC i Raspberry Pi\n");
   printf("Descodificació DTMF.\n");
   if ((argc==2) && strcmp(argv[1],"-debug")==0) debug=-1; // han entrat -debug" a línia d'ordres
   if (debug) printf("Mode debug activat\n");
