@@ -17,39 +17,49 @@ Description
 nanosleep() suspends the execution of the calling thread until either at least the time specified in *req has elapsed, or the delivery of a signal that triggers the invocation of a handler in the calling thread or that terminates the process. 
 
 Exemples d'execució (HP Elitebook 2570p, cpu:i5-3340m @ 2.7 GHz
-(provat usant tty0tty = emulació de connexió entre 2 ports sèrie en la mateixa màquina)
+(abans de provar amb Arduino es provà usant tty0tty = emulació de connexió entre 2 ports sèrie en la mateixa màquina) (/dev/pts/3 <-> /dev/pts4)
 https://sourceforge.net/projects/tty0tty/
 
-(emulació, sense arduino, sense programar port a 115200)
-$ ./exp1.out 
-L:   1 |dela:         5 ms |dtt:     65.00 us|
-L:  10 |dela:         5 ms |dtt:     40.00 us|
-L:  20 |dela:         5 ms |dtt:     34.00 us|
-L: 100 |dela:        25 ms |dtt:      6.00 us|
-L: 200 |dela:        50 ms |dtt:      5.00 us|
-L:1000 |dela:       250 ms |dtt:     39.00 us|
-
-(amb arduino port a 115200, enviant 'A' contínuament)
-$ ./exp1-n.out 
-L:   1 |dela:         5 ms |dtt:     63.00 us|
-L:  10 |dela:         5 ms |dtt:     41.00 us|
-L:  20 |dela:         5 ms |dtt:     26.00 us|
-L: 100 |dela:        25 ms |dtt:      4.00 us|
-L: 200 |dela:        50 ms |dtt:      5.00 us|
-L:1000 |dela:       250 ms |dtt:     46.00 us|
-
 (amb arduino port a 115200, enviant binari 8 bits - port obert per binari!)
-$ ./exp1-n.out 
-L:   1 |dela:         5 ms |dtt:     71.00 us|
-L:  10 |dela:         5 ms |dtt:     49.00 us|
-L:  20 |dela:         5 ms |dtt:     33.00 us|
-L: 100 |dela:        25 ms |dtt:     12.00 us|
-L: 200 |dela:        50 ms |dtt:      5.00 us|
-L:1000 |dela:       250 ms |dtt:     31.00 us|
+$ bin/experiment1-nanosleep 
+L:   1 |dela:         5 ms |dtt:      6.03 us|
+L:  10 |dela:         5 ms |dtt:      2.61 us|
+L:  20 |dela:         5 ms |dtt:      1.92 us|
+L: 100 |dela:        25 ms |dtt:      9.09 us|
+L: 200 |dela:        50 ms |dtt:      8.71 us|
+L:1000 |dela:       250 ms |dtt:     12.65 us|
 
+$ bin/experiment1-nanosleep 
+L:   1 |dela:         5 ms |dtt:      8.08 us|
+L:  10 |dela:         5 ms |dtt:      5.72 us|
+L:  20 |dela:         5 ms |dtt:      5.71 us|
+L: 100 |dela:        25 ms |dtt:     12.60 us|
+L: 200 |dela:        50 ms |dtt:     10.95 us|
+L:1000 |dela:       250 ms |dtt:      9.69 us|
 
+$ bin/experiment1-nanosleep 
+L:   1 |dela:         5 ms |dtt:     11.99 us|
+L:  10 |dela:         5 ms |dtt:     13.71 us|
+L:  20 |dela:         5 ms |dtt:     11.16 us|
+L: 100 |dela:        25 ms |dtt:      8.91 us|
+L: 200 |dela:        50 ms |dtt:      2.21 us|
+L:1000 |dela:       250 ms |dtt:     21.87 us|
+
+(amb tty0tty en emulació /dev/pts/3 <-> /dev/pts4.
+Estrany que el codi 'llegeix' tot i no estar enviant el remot)
+$ sudo bin/experiment1-nanosleep 
+L:   1 |dela:         5 ms |dtt:     15.68 us|
+L:  10 |dela:         5 ms |dtt:     12.49 us|
+L:  20 |dela:         5 ms |dtt:     11.18 us|
+L: 100 |dela:        25 ms |dtt:     12.70 us|
+L: 200 |dela:        50 ms |dtt:      4.52 us|
+L:1000 |dela:       250 ms |dtt:     20.47 us|
 
 */
+
+// Definició RESTA_TIMESPEC(): calcula t1-t0,
+// valors obtinguts de clock_gettime(). Dona resultat en nanosegons
+#define RESTA_TIMESPEC(t1,t0) (((t1.tv_sec - t0.tv_sec) * 1E9) + (t1.tv_nsec - t0.tv_nsec))
 
 char buffer[2000];
 
@@ -58,7 +68,7 @@ char buffer[2000];
 // Returns the file descriptor on success or -1 on error.
 int open_port(void)
 {
-  //char * port = "/dev/pts/1"; // for emulated serial port
+  //char * port = "/dev/pts/3"; // for emulated serial port
   char * port = "/dev/ttyUSB3"; // for real serial port to Arduino
   int fd; /* File descriptor for the port */
 
@@ -76,7 +86,7 @@ int open_port(void)
     // setting the options
     cfsetispeed(&options, B115200); //input baudrate
     cfsetospeed(&options, B115200); // output baudrate
-    options.c_cflag |= (CLOCAL | CREAD); // ?? enable receivcer and set local mode
+    options.c_cflag |= (CLOCAL | CREAD); // ?? enable receiver and set local mode
     //options.c_cflag &= ~CSIZE; /* mask the character size bits */
     options.c_cflag |= CS8;    /* select 8 data bits */
     options.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG); // choosing raw input
@@ -108,25 +118,25 @@ void serial_read(int port, int l)
  read(port, buffer, l);
 }
 
-// calculs(): donats un port, una l i un retard dela,
+// calculs(): donats un port, una l i un retard dela (ns),
 // espera dela i llegeix l caràcter/s.
-// retorna dtt.
-float calculs(int port, int l, useconds_t dela)
+// retorna dtt en nanosegons.
+float calculs(int port, int l, long dela)
 {
-  clock_t t0, t1;
+  struct timespec t0, t1;
   struct timespec req, rem;
   req.tv_sec = 0;
-  req.tv_nsec = dela*1000; // convert us to ns
-  t0 = clock(); // obtenim temps inicial
+  req.tv_nsec = dela; // delay in ns (less than 1 s!)
   nanosleep(&req, &rem); // retard de dela microsegons
+  clock_gettime(CLOCK_REALTIME, &t0); // obtenim temps inicial
   serial_read(port, l); // lectura (descartada) de l elements
-  t1 = clock(); // obtenim temps final després del retard
- return ((float)(t1 - t0)) / (CLOCKS_PER_SEC * 1.0E-6); // obtenim us de 'retard'
+  clock_gettime(CLOCK_REALTIME, &t1); // obtenim temps final després del retard
+ return RESTA_TIMESPEC(t1,t0); // obtenim us de 'retard' en ns
 }
 
 void resultats(int l, long nsdela, float dtt)
 {
-  printf("L:%4d |dela:%10d ms |dtt:%10.2f us|\n", l, nsdela/1000000, dtt); 
+  printf("L:%4d |dela:%10ld ms |dtt:%10.2f us|\n", l, nsdela/1000000, dtt/1000); 
 }
 
 #define TESTS 6
@@ -139,6 +149,7 @@ void main(void)
   int i;
   float dtt;
   port_serie=open_port();
+  tcflush(port_serie,TCIFLUSH); //buidem caràcters d'entrada port sèrie
   for (i=0;i<TESTS;i++)
     {
       dtt=calculs(port_serie, L[i], nsdela[i]); // L[i] lectures de port sèrie

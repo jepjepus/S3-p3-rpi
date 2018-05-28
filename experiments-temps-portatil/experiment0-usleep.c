@@ -10,15 +10,20 @@ The usleep() function suspends execution of the calling thread for (at least) us
 
 Exemples d'execució (HP Elitebook 2570p, cpu:i5-3340m @ 2.7 GHz
 
-$./a.out 
-N:100 delay:  1 ms -> | min:  10.00 us | avg:  32.95 us | max:  65.00 us|
-N:100 delay: 10 ms -> | min:  13.00 us | avg:  22.14 us | max:  39.00 us|
-N:100 delay:100 ms -> | min:  13.00 us | avg:  21.64 us | max:  40.00 us|
-$ nice -20 ./a.out 
-N:100 delay:  1 ms -> | min:   9.00 us | avg:  17.44 us | max:  21.00 us|
-N:100 delay: 10 ms -> | min:  13.00 us | avg:  18.04 us | max:  41.00 us|
-N:100 delay:100 ms -> | min:  13.00 us | avg:  20.86 us | max:  37.00 us|
+$ bin/experiment0-usleep 
+N:100 delay:  1 ms -> | min:  66.14 us | avg:  77.92 us | max: 105.57 us|
+N:100 delay: 10 ms -> | min:  59.31 us | avg:  93.55 us | max: 124.17 us|
+N:100 delay:100 ms -> | min:  60.57 us | avg:  92.03 us | max: 159.50 us|
+
+$ nice -20 bin/experiment0-usleep 
+N:100 delay:  1 ms -> | min:  56.94 us | avg:  70.30 us | max:  79.44 us|
+N:100 delay: 10 ms -> | min:  58.82 us | avg:  93.71 us | max: 125.86 us|
+N:100 delay:100 ms -> | min:  54.46 us | avg:  89.16 us | max: 130.62 us|
 */
+
+// Definició RESTA_TIMESPEC(): calcula t1-t0,
+// valors obtinguts de clock_gettime(). Dona resultat en nanosegons
+#define RESTA_TIMESPEC(t1,t0) (((t1.tv_sec - t0.tv_sec) * 1E9) + (t1.tv_nsec - t0.tv_nsec))
 
 #define N 100
 
@@ -27,13 +32,13 @@ float dtt[N];
 void calculs(int n, useconds_t dela) // fer N vegades bucle amb retard de dela (microsegons)
 {
   int i;
-  clock_t t0, t1;
+  struct timespec t0, t1;
   for (i=0;i<n;i++)
     {
-      t0 = clock(); // obtenim temps inicial
+      clock_gettime(CLOCK_REALTIME, &t0); // obtenim temps inicial
       usleep(dela); // retard de dela microsegons
-      t1 = clock(); // obtenim temps final després del retard
-      dtt[i] = ((float)(t1 - t0)) / (CLOCKS_PER_SEC* 1.0E-6); // obtenim us de 'retard' en tornar del retard
+      clock_gettime(CLOCK_REALTIME, &t1); // obtenim temps final després del retard
+      dtt[i] = RESTA_TIMESPEC(t1,t0) - dela*1000L;
     }
 }
 
@@ -49,7 +54,7 @@ void resultats(int n, useconds_t dela, float t[N])
       avg += t[i];
     }
   avg /= n;
-  printf("N:%3d delay:%3.0f ms -> | min:%7.2f us | avg:%7.2f us | max:%7.2f us|\n", n, dela/1000.0, min, avg, max); 
+  printf("N:%3d delay:%3.0f ms -> | min:%7.2f us | avg:%7.2f us | max:%7.2f us|\n", n, dela/1000.0, min/1000, avg/1000, max/1000); 
 }
   
 void main(void)

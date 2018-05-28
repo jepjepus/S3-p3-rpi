@@ -17,40 +17,29 @@ Description
 nanosleep() suspends the execution of the calling thread until either at least the time specified in *req has elapsed, or the delivery of a signal that triggers the invocation of a handler in the calling thread or that terminates the process. 
 
 Exemple d'execució (HP Elitebook 2570p, cpu:i5-3340m @ 2.7 GHz
-(provat usant tty0tty = emulació de connexió entre 2 ports sèrie en la mateixa màquina)
-https://sourceforge.net/projects/tty0tty/
-
-(emulació, sense arduino, sense programar port a 115200)
-$ ./exp2.out 
-L:   1 | min:   0.00 us | avg:   1.56 us | max:   7.00 us|
-L:  10 | min:   1.00 us | avg:   1.64 us | max:   2.00 us|
-L:  20 | min:   1.00 us | avg:   1.68 us | max:   3.00 us|
-L: 100 | min:   1.00 us | avg:   1.78 us | max:   3.00 us|
-L: 200 | min:   1.00 us | avg:   1.62 us | max:   3.00 us|
-L:1000 | min:   1.00 us | avg:   1.45 us | max:   2.00 us|
-
-(amb arduino port a 115200, enviant 'A' contínuament)
-$ ./exp2-n.out 
-L:   1 | min:   0.00 us | avg:   1.78 us | max:   9.00 us|
-L:  10 | min:   0.00 us | avg:   0.88 us | max:   2.00 us|
-L:  20 | min:   0.00 us | avg:   0.96 us | max:   3.00 us|
-L: 100 | min:   1.00 us | avg:   1.41 us | max:   3.00 us|
-L: 200 | min:   1.00 us | avg:   1.93 us | max:   5.00 us|
-L:1000 | min:   1.00 us | avg:   2.91 us | max:   6.00 us|
-
 (amb arduino port a 115200, enviant binari 8 bits - port obert per binari!)
-$ ./exp2-n.out 
-L:   1 | min:   0.00 us | avg:   1.69 us | max:   8.00 us|
-L:  10 | min:   0.00 us | avg:   1.02 us | max:   3.00 us|
-L:  20 | min:   0.00 us | avg:   1.09 us | max:   2.00 us|
-L: 100 | min:   1.00 us | avg:   1.53 us | max:   4.00 us|
-L: 200 | min:   1.00 us | avg:   1.51 us | max:   5.00 us|
-L:1000 | min:   1.00 us | avg:   2.56 us | max:   5.00 us|
 
+$ bin/experiment2-nanosleep 
+L:   1 | min:   0.45 us | avg:   0.52 us | max:   3.37 us|
+L:  10 | min:   0.44 us | avg:   0.61 us | max:   2.74 us|
+L:  20 | min:   0.46 us | avg:   0.72 us | max:   2.70 us|
+L: 100 | min:   0.61 us | avg:   0.95 us | max:   3.03 us|
+L: 200 | min:   0.68 us | avg:   1.11 us | max:   3.16 us|
+L:1000 | min:   0.88 us | avg:   1.89 us | max:   3.76 us|
 
+$ bin/experiment2-nanosleep 
+L:   1 | min:   0.45 us | avg:   0.57 us | max:   8.87 us|
+L:  10 | min:   0.46 us | avg:   0.65 us | max:   2.54 us|
+L:  20 | min:   0.46 us | avg:   1.14 us | max:   2.79 us|
+L: 100 | min:   0.62 us | avg:   0.88 us | max:   3.14 us|
+L: 200 | min:   0.70 us | avg:   1.37 us | max:   3.18 us|
+L:1000 | min:   0.76 us | avg:   1.97 us | max:   4.03 us|
 
 */
 
+// Definició RESTA_TIMESPEC(): calcula t1-t0,
+// valors obtinguts de clock_gettime(). Dona resultat en nanosegons
+#define RESTA_TIMESPEC(t1,t0) (((t1.tv_sec - t0.tv_sec) * 1E9) + (t1.tv_nsec - t0.tv_nsec))
 
 #define N 100
 float dtt[N];
@@ -114,19 +103,18 @@ void serial_read(int port, int l)
 
 // calculs(): donats un port, una l,
 // espera a tenir l caràcters al port i llegeix l caràcter/s.
-// retorna dtt.
 void calculs(int port, int l)
 {
   int i, bytes_avail;
-  clock_t t0, t1;
+  struct timespec t0, t1;
   for(i=0;i<N;i++)
     {
       do ioctl(port, FIONREAD, &bytes_avail);
 	  while (bytes_avail<l); // hi ha l bytes_avail
-     t0 = clock(); // obtenim temps inicial
-     serial_read(port, l); // lectura (descartada) de l elements
-     t1 = clock(); // obtenim temps final després del retard
-     dtt[i] = ((float)(t1 - t0)) / (CLOCKS_PER_SEC * 1.0E-6); // obtenim us de 'retard'
+      clock_gettime(CLOCK_REALTIME, &t0); // obtenim temps inicial
+      serial_read(port, l); // lectura (descartada) de l elements
+      clock_gettime(CLOCK_REALTIME, &t1); // obtenim temps final després del retard
+      dtt[i] = RESTA_TIMESPEC(t1,t0); // obtenim durada
     }
 }
 
@@ -142,7 +130,7 @@ void resultats(int l, float t[N])
       avg += t[i];
     }
   avg /= N;
-  printf("L:%4d | min:%7.2f us | avg:%7.2f us | max:%7.2f us|\n", l, min, avg, max); 
+  printf("L:%4d | min:%7.2f us | avg:%7.2f us | max:%7.2f us|\n", l, min/1000, avg/1000, max/1000); 
 }
 
 #define TESTS 6
@@ -152,6 +140,7 @@ void main(void)
   int port_serie;
   const int L[TESTS]={1,10,20,100,200,1000}; // tests de 0 a TESTS-1
   port_serie=open_port();
+  tcflush(port_serie,TCIFLUSH); //buidem caràcters d'entrada port sèrie
   for (int i=0;i<TESTS;i++)
     {
       calculs(port_serie, L[i]); // L[i] lectures de port sèrie
