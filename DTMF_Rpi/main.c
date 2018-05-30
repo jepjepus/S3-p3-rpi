@@ -88,6 +88,11 @@ D |Tser:27831.00 us|Tgoe:  10.00 us|Total:27841.00 us|
 
 */
 
+// Definició RESTA_TIMESPEC(): calcula t1-t0,
+// valors obtinguts de clock_gettime(). Dona resultat en nanosegons
+#define RESTA_TIMESPEC(t1,t0) (((t1.tv_sec - t0.tv_sec) * 1E9) + (t1.tv_nsec - t0.tv_nsec))
+
+
 #define N 196 // longitud de finestra
 #define FM 8000 // freqüència de mostratge
 #define NUMFREQ 8 // seran les freqüències de 0 a 7
@@ -216,20 +221,22 @@ const char calc_boto(void){ //CAPA 2: detecció de les 2 freqüències + botó c
 }
 
 void capa_3(char capa_2){ //CAPA 3: màquina d'estats. Filtre casos d'error, espais, durada de pulsació de boto...
-  static int estat=0;
+  
+  typedef enum _ESTAT { S_DIGIT, S_SILENCI } ESTAT;
+  static ESTAT estat = S_SILENCI;
   //printf("[%d]",estat);
   switch (estat){
-  case 0:
+  case S_SILENCI:
     if (!((capa_2=='S') || (capa_2=='E'))) {
-      printf("%c", capa_2); estat=1; // cal cridar fflush() per forçar el buidatge de buffer de printf si no cal acabar printf amb \n
-      //fflush(stdout); //alternativa a fflush(stdout): setbuf(stdout, NULL) a l'inici del programa
+      printf("%c", capa_2); estat=S_DIGIT; // cal cridar fflush() per forçar el buidatge de buffer de printf si no cal acabar printf amb \n
+      //fflush(stdout); //alternativa: setbuf(stdout, NULL) a l'inici del programa
       return;
     }
     //else{printf("-");}
     break;
-  case 1:
+  case S_DIGIT:
     if (capa_2=='S') {
-      estat=0;
+      estat=S_SILENCI;
       return;
     }
     //else printf("%d",estat);
@@ -288,8 +295,8 @@ int main(int argc, char * argv[]) // poden entrar -debug per mostrar temps
       clock_gettime(CLOCK_REALTIME, &t1);  
       goertzel(buffer,N);
       clock_gettime(CLOCK_REALTIME, &t2);  
-      T1 = ((t1.tv_sec - t0.tv_sec) * 1E9) + (t1.tv_nsec - t0.tv_nsec);
-      T2 = ((t2.tv_sec - t1.tv_sec) * 1E9) + (t2.tv_nsec - t1.tv_nsec);
+      T1 = RESTA_TIMESPEC(t1,t0);
+      T2 = RESTA_TIMESPEC(t2,t1);
       if (debug) printf(" |Tser:%7.2f us|Tgoe:%7.2f us|Total:%7.2f us|\n", T1/1000, T2/1000, (T1+T2)/1000);
     }
    close_port(port_serie);
